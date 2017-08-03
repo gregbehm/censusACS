@@ -14,7 +14,7 @@ See the online *Guidance for Data Users* at https://www.census.gov/programs-surv
 
 **This project accesses and processes the ACS Summary File into detailed subject tables, according to the user's request for Year, State, and Detailed Table names.**
 
-The document *How To construct ACS tables from Summary Files.docx* included with this repo provides explanation for constructing detailed tables from the ACS Summary File. **Following is an excerpt of the step-by-step example:**  
+The document *How To construct ACS tables from Summary Files.docx* included with this repo provides explanation for constructing detailed tables from the ACS Summary File.
 
 #### Step-by-step example for creating Table B01002, “Median Age By Sex,” for all Colorado Census Block Groups.
 1.	From Appendix A in file ACS_2015_SF_5YR_Appendices.xls, find the row containing table B01002 in the “Table Number” column. 
