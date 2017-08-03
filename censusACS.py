@@ -10,7 +10,6 @@ import requests
 import sys
 import zipfile
 
-
 # Define helper functions
 
 def get_config(config=None):
@@ -126,15 +125,19 @@ def main(config=None):
     summary_file_suffix = '_Tracts_Block_Groups_Only.zip'
 
     sourcedir = os.path.join(os.getcwd(), 'ACS_data_' + year)
-    if not os.path.exists(sourcedir):
+    try:
         os.mkdir(sourcedir)
+    except FileExistsError:
+        pass
 
     appendix_file = 'ACS_' + year + '_SF_5YR_Appendices.xls'
     templates_file = year + '_5yr_Summary_FileTemplates.zip'
 
     outdir = os.path.join(sourcedir, 'ACS_tables')
-    if not os.path.exists(outdir):
+    try:
         os.mkdir(outdir)
+    except FileExistsError:
+        pass
 
     # Note: The summary files (e.g. 5-year by state) are multi-MB files
     states = cfg['states']
@@ -257,18 +260,17 @@ def main(config=None):
 
                     # Save non-empty table as CSV
                     if not df.drop('Geographic Identifier', axis=1).dropna().empty:
-                        built += 1
                         # Conform Geographic ID with GEOID in Census Block Group shapefiles
                         df.rename(columns={'Geographic Identifier': 'GEOID'}, inplace=True)
                         # Strip GEOID to last 12 characters
                         df['GEOID'] = df['GEOID'].apply(lambda x: x[-12:])
                         pathname = os.path.join(outdir, state + table + '.csv')
                         df.to_csv(pathname, index=False)
+                        built += 1
                         print('.', end='', flush=True)
 
                 empty = len(all_tables) - built
-                print()
-                print(f'Saved {built} tables and dropped {empty} empty tables for {state}')
+                print(f'\nSaved {built} tables and dropped {empty} empty tables for {state}')
 
 
 if __name__ == '__main__':
