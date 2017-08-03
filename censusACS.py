@@ -1,4 +1,6 @@
-# ## Generate Detailed Tables from the US Census ACS 5-Year Summary Files
+"""
+Generate Detailed Tables from the US Census ACS 5-Year Summary Files
+"""
 
 import argparse
 import json
@@ -211,7 +213,7 @@ def main(config=None):
                 summary_geo = get_by_summary_level(gdf, summary_level)
                 logical_recs = summary_geo[['Geographic Identifier', 'Logical Record Number']]
 
-                built, empty = 0, 0
+                built = 0
                 # Process all tables
                 for table in all_tables:
                     sequence_data = []
@@ -262,20 +264,15 @@ def main(config=None):
                         df['GEOID'] = df['GEOID'].apply(lambda x: x[-12:])
                         pathname = os.path.join(outdir, state + table + '.csv')
                         df.to_csv(pathname, index=False)
-                        print('.', end='')
-                        sys.stdout.flush()
-                    else:
-                        empty += 1
+                        print('.', end='', flush=True)
 
+                empty = len(all_tables) - built
                 print()
-                print('Saved {} tables and dropped {} empty tables for {}'.format(built, empty, state))
-                # for table in all_tables
+                print(f'Saved {built} tables and dropped {empty} empty tables for {state}')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate US Census ACS Detailed Tables")
     parser.add_argument("-c", "--config")
     args = parser.parse_args()
-
     main(args.config)
-    # main()
