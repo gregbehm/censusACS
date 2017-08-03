@@ -23,14 +23,14 @@ def get_config(config=None):
             data = json.load(fp)
             cfg = {
                 'year': data.get('year', '2015'),
-                'states': data.get('states', {'Colorado': 'co'}),
+                'states': data.get('states', ['Colorado']),
                 'tables': data.get('tables', [])
             }
     except:
         # Default config dictionary
         cfg = {
             'year': '2015',
-            'states': {'Colorado': 'co'},
+            'states': ['Colorado'],
             'tables': []
         }
 
@@ -98,7 +98,7 @@ def get_templates(templates_zip_archive):
                 # Generate 4-digit sequence number string
                 index = name.index('Seq')
                 # Drop 'Seq' and separate sequence number from file extension
-                s = name[index+3:].split('.')[0]
+                s = name[index + 3:].split('.')[0]
                 # Generate number string
                 key = s.zfill(4)
             elif 'Geo' in name:
@@ -192,7 +192,7 @@ def main(config=None):
     templates = get_templates(pathname)
 
     # For each state and table name, generate output table
-    for state, state_code in states.items():
+    for state in states:
         print(f'Building tables for {state}')
         # Unzip and open the summary files
         pathname = os.path.join(sourcedir, state + summary_file_suffix)
