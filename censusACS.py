@@ -21,18 +21,18 @@ def get_config(config=None):
     try:
         with open(config, 'r') as fp:
             data = json.load(fp)
-            cfg = {'year': data.get('year', '2015'),
-                   'summary_level': data.get('summary_level', '150'),  # Block Group summary level: 150
-                   'states': data.get('states', {'Colorado': 'co'}),
-                   'tables': data.get('tables', [])
-                   }
+            cfg = {
+                'year': data.get('year', '2015'),
+                'states': data.get('states', {'Colorado': 'co'}),
+                'tables': data.get('tables', [])
+            }
     except:
         # Default config dictionary
-        cfg = {'year': '2015',
-               'summary_level': '150',  # Block Group summary level: 150
-               'states': {'Colorado': 'co'},
-               'tables': []
-               }
+        cfg = {
+            'year': '2015',
+            'states': {'Colorado': 'co'},
+            'tables': []
+        }
 
     return cfg
 
@@ -133,13 +133,12 @@ def main(config=None):
     except FileExistsError:
         pass
 
-    # Define Census Summary Level info.
-    summary_level = cfg['summary_level']
+    # Assign variables
+
+    summary_level = '150'  # Block Group summary level
     summary_file_suffix = '_Tracts_Block_Groups_Only.zip'
     appendix_file = 'ACS_' + year + '_SF_5YR_Appendices.xls'
     templates_file = year + '_5yr_Summary_FileTemplates.zip'
-
-    # Download files, as necessary
 
     acs_base_url = 'https://www2.census.gov/programs-surveys/acs/summary_file/' + year
     by_state_base_url = acs_base_url + '/data/5_year_by_state/'
@@ -152,6 +151,7 @@ def main(config=None):
             acs_base_url + '/data/' + templates_file,
             ] + state_urls
 
+    # Download files, as necessary
     for url in urls:
         basename, filename = os.path.split(url)
         pathname = os.path.join(sourcedir, filename)
