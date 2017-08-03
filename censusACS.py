@@ -19,7 +19,7 @@ def get_config(config=None):
     """
 
     try:
-        with open(config, 'r') as fp:
+        with open(config) as fp:
             data = json.load(fp)
             cfg = {
                 'year': data.get('year', '2015'),
@@ -96,15 +96,15 @@ def get_templates(templates_zip_archive):
         for name in z.namelist():
             if 'Seq' in name:
                 # Generate 4-digit sequence number string
-                index = name.find('Seq')
-                # Separate sequence from file name extension
-                a = name[index:].split('.')[0]
-                # Drop 'Seq' and generate number string
-                key = a.replace('Seq', '').zfill(4)
+                index = name.index('Seq')
+                # Drop 'Seq' and separate sequence number from file extension
+                s = name[index+3:].split('.')[0]
+                # Generate number string
+                key = s.zfill(4)
             elif 'Geo' in name:
                 key = 'geo'
             else:
-                # skip directory names
+                # skip directories or other files
                 continue
             with z.open(name) as f:
                 df = pd.read_excel(f)
@@ -167,27 +167,27 @@ def main(config=None):
                     print(f'Error {e}: File write on {pathname} failed')
 
     # Read ACS 5-year Appendix A for Table sequence numbers, start/end records
-
     pathname = os.path.join(sourcedir, appendix_file)
     with open(pathname, 'rb') as r:
-        appendix_A = pd.read_excel(r, converters={'Summary File Sequence Number': str})
-        appendix_A.columns = ['name', 'title', 'restr', 'seq', 'start_end']
-        # Validate that Sequence and Start-End columns contain no NaN entries.
-        assert_msg = f'File {appendix_file} is corrupt: NaN Sequence or Start/End data retrieved.'
-        assert appendix_A['seq'].isnull().sum() == 0 and appendix_A['start_end'].isnull().sum() == 0, assert_msg
-        appendix_A['start'], appendix_A['end'] = appendix_A['start_end'].str.split('-', 1).str
-        appendix_A['start'] = pd.to_numeric(appendix_A['start'])
-        appendix_A['end'] = pd.to_numeric(appendix_A['end'])
+        appx_A = pd.read_excel(r, converters={'Summary File Sequence Number': str})
+        appx_A.columns = ['name', 'title', 'restr', 'seq', 'start_end']
+        try:
+            appx_A['start'], appx_A['end'] = appx_A['start_end'].str.split('-', 1).str
+            appx_A['start'] = pd.to_numeric(appx_A['start'])
+            appx_A['end'] = pd.to_numeric(appx_A['end'])
+        except ValueError as e:
+            print(f'{e}. File {pathname} is corrupt or has invalid format')
+            raise
 
     # Create Tables list
-    tables = appendix_A.drop(['restr', 'seq', 'start_end', 'start', 'end'], axis=1)
+    tables = appx_A.drop(['restr', 'seq', 'start_end', 'start', 'end'], axis=1)
     pathname = os.path.join(outdir, 'ACS All Tables.csv')
     # Save table Names and Titles to CSV.
     tables.to_csv(pathname, index=False)
     # Now check for limited table list from input config file.
     all_tables = cfg['tables'] if cfg['tables'] else tables['name'].tolist()
 
-    # Create templates dictionary
+    # Create the templates dictionary
     pathname = os.path.join(sourcedir, templates_file)
     templates = get_templates(pathname)
 
@@ -205,7 +205,7 @@ def main(config=None):
             m = [f for f in z.namelist() if f.startswith('m')]
             # Pull sequence number from file name positions 8-11; use as dict key
             mfiles = {f[8:12]: f for f in m}
-            # Get Geography file name
+            # Get Geography CSV file name
             geofile = [f for f in z.namelist() if f.startswith('g') and f.endswith('csv')][0]
             # Open and read the Geography file
             with z.open(geofile) as g:
@@ -220,7 +220,7 @@ def main(config=None):
                 for table in all_tables:
                     sequence_data = []
                     # For this table, get file sequence numbers, start/end record numbers
-                    seqs, starts, ends = get_appendix_data(appendix_A, table)
+                    seqs, starts, ends = get_appendix_data(appx_A, table)
                     for seq, start, end in zip(seqs, starts, ends):
                         # Get summary and margin file, based on sequence number
                         efile = efiles[seq]
