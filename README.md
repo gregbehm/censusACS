@@ -16,7 +16,7 @@ See the online *Guidance for Data Users* at https://www.census.gov/programs-surv
 
 The document *How To construct ACS tables from Summary Files.docx* included with this repo provides explanation for constructing detailed tables from the ACS Summary File.
 
-**The following excerpt from *How To construct ACS tables from Summary Files.docx* illustrates the logical flow of the censusACS.py python code.** 
+**The following excerpt from** *How To construct ACS tables from Summary Files.docx* **illustrates the logical flow of the censusACS.py python code.** 
 
 #### Step-by-step example for creating Table B01002, “Median Age By Sex,” for all Colorado Census Block Groups.
 1.	From Appendix A in file ACS_2015_SF_5YR_Appendices.xls, find the row containing table B01002 in the “Table Number” column. 
