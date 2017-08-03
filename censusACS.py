@@ -7,6 +7,7 @@ import json
 import os
 import pandas as pd
 import requests
+import sys
 import zipfile
 
 
@@ -176,8 +177,9 @@ def main(config=None):
             appx_A['start'] = pd.to_numeric(appx_A['start'])
             appx_A['end'] = pd.to_numeric(appx_A['end'])
         except ValueError as e:
-            print(f'{e}. File {pathname} is corrupt or has invalid format')
-            raise
+            print(f'{e}.', file=sys.stderr)
+            print(f'File {pathname} is corrupt or has invalid format.', file=sys.stderr)
+            raise SystemExit(f'Exiting {__file__}.')
 
     # Create Tables list
     tables = appx_A.drop(['restr', 'seq', 'start_end', 'start', 'end'], axis=1)
