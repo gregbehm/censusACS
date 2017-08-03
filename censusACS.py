@@ -7,8 +7,8 @@ import json
 import os
 import pandas as pd
 import requests
-import sys
 import zipfile
+
 
 # Define helper functions
 
@@ -97,7 +97,7 @@ def get_templates(templates_zip_archive):
             if 'Seq' in name:
                 # Generate 4-digit sequence number string
                 index = name.find('Seq')
-                # Separate sequence from filename extension
+                # Separate sequence from file name extension
                 a = name[index:].split('.')[0]
                 # Drop 'Seq' and generate number string
                 key = a.replace('Seq', '').zfill(4)
@@ -120,18 +120,12 @@ def main(config=None):
     # ACS release year
     year = cfg['year']
 
-    # Define Census Summary Level info.
-    summary_level = cfg['summary_level']
-    summary_file_suffix = '_Tracts_Block_Groups_Only.zip'
-
+    # Make data directories, if necessary
     sourcedir = os.path.join(os.getcwd(), 'ACS_data_' + year)
     try:
         os.mkdir(sourcedir)
     except FileExistsError:
         pass
-
-    appendix_file = 'ACS_' + year + '_SF_5YR_Appendices.xls'
-    templates_file = year + '_5yr_Summary_FileTemplates.zip'
 
     outdir = os.path.join(sourcedir, 'ACS_tables')
     try:
@@ -139,14 +133,19 @@ def main(config=None):
     except FileExistsError:
         pass
 
-    # Note: The summary files (e.g. 5-year by state) are multi-MB files
-    states = cfg['states']
+    # Define Census Summary Level info.
+    summary_level = cfg['summary_level']
+    summary_file_suffix = '_Tracts_Block_Groups_Only.zip'
+    appendix_file = 'ACS_' + year + '_SF_5YR_Appendices.xls'
+    templates_file = year + '_5yr_Summary_FileTemplates.zip'
 
     # Download files, as necessary
 
     acs_base_url = 'https://www2.census.gov/programs-surveys/acs/summary_file/' + year
     by_state_base_url = acs_base_url + '/data/5_year_by_state/'
 
+    # Note: The summary files (e.g. 5-year by state) are multi-MB files
+    states = cfg['states']
     state_urls = [by_state_base_url + state + summary_file_suffix for state in states]
 
     urls = [acs_base_url + '/documentation/tech_docs/' + appendix_file,
@@ -164,8 +163,8 @@ def main(config=None):
                     with open(pathname, 'wb') as w:
                         w.write(response.content)
                         print(f'File {pathname} downloaded successfully')
-                except:
-                    print(f'Error: File write on {pathname} failed')
+                except OSError as e:
+                    print(f'Error {e}: File write on {pathname} failed')
 
     # Read ACS 5-year Appendix A for Table sequence numbers, start/end records
 
@@ -196,15 +195,15 @@ def main(config=None):
     for state, state_code in states.items():
         print(f'Building tables for {state}')
         # Unzip and open the summary files
-        filename = os.path.join(sourcedir, state + summary_file_suffix)
-        with zipfile.ZipFile(filename) as z:
+        pathname = os.path.join(sourcedir, state + summary_file_suffix)
+        with zipfile.ZipFile(pathname) as z:
             # Get Estimate file names
             e = [f for f in z.namelist() if f.startswith('e')]
-            # Pull sequence number from positions 8-11; use as dict key
+            # Pull sequence number from file name positions 8-11; use as dict key
             efiles = {f[8:12]: f for f in e}
             # Get Margin-of-Error file names
             m = [f for f in z.namelist() if f.startswith('m')]
-            # Pull sequence number from positions 8-11; use as dict key
+            # Pull sequence number from file name positions 8-11; use as dict key
             mfiles = {f[8:12]: f for f in m}
             # Get Geography file name
             geofile = [f for f in z.namelist() if f.startswith('g') and f.endswith('csv')][0]
