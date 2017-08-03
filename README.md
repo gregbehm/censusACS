@@ -12,4 +12,6 @@ The most comprehensive ACS data are contained in the ACS Summary File, a set of 
 
 See the online *Guidance for Data Users* at https://www.census.gov/programs-surveys/acs/guidance.html for more information. 
 
-This project accesses and processes the ACS Summary File into detailed subject tables, according to the user's request for Year, State, and Detailed Table names.
+**This project accesses and processes the ACS Summary File into detailed subject tables, according to the user's request for Year, State, and Detailed Table names.**
+
+Document *How To construct ACS tables from Summary Files.docx* included with this repo provides a detailed, step-by-step explanation for how to construct detailed tables from the summary file.
