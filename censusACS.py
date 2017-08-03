@@ -108,7 +108,7 @@ def get_templates(templates_zip_archive):
                 continue
             with z.open(name) as f:
                 df = pd.read_excel(f)
-                # Extract column names from Row 0
+                # Extract column names from data row 0
                 templates[key] = df.loc[0].tolist()
     return templates
 
