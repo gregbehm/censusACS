@@ -14,4 +14,18 @@ See the online *Guidance for Data Users* at https://www.census.gov/programs-surv
 
 **This project accesses and processes the ACS Summary File into detailed subject tables, according to the user's request for Year, State, and Detailed Table names.**
 
-Document *How To construct ACS tables from Summary Files.docx* included with this repo provides a detailed, step-by-step explanation for how to construct detailed tables from the summary file.
+The document *How To construct ACS tables from Summary Files.docx* included with this repo provides explanation for constructing detailed tables from the ACS Summary File. **Following is an excerpt of the step-by-step example:**  
+
+### Step-by-step example for creating Table B01002, “Median Age By Sex,” for all Colorado Census Block Groups.
+1.	From Appendix A in file ACS_2015_SF_5YR_Appendices.xls, find the row containing table B01002 in the “Table Number” column. 
+Note: Occasionally, but rarely, a table spans multiple sequence files, so be sure to look for all rows for a given table number.
+2.	Record the row information found in Step #1 — Table Number (B01002), Table Title (Median Age By Sex), Geography Restrictions (none), Summary File Sequence Number (0003), Summary File Starting and Ending Positions (100-102) — for later use.
+3.	From geography file g20155co.csv in Summary File Colorado_Tracts_Block_Groups_Only.zip, filter for and save the 3,532 rows containing Block Group summary level value (150) in the third column.
+4.	From the geography file template 2015_SFGeoFileTemplate.xls in 2015_5yr_Summary_FileTemplates.zip, use Row #2 for the descriptive column names to associate with the geo data collected in Step #3 above.
+5.	Using the “Logical Record Number” and “Geographic Identifier” columns for the block group data from Step #3, form a new table with these columns only.
+6.	Referencing the Summary File Sequence Number 0003 from Step #2, open files e20155co0003000.txt and m20155co0003000.txt from the Summary File archive Colorado_Tracts_Block_Groups_Only.zip.
+7.	Use the logical record numbers from the table constructed in Step #5 to locate the corresponding rows (matching column 6) in the estimate and margins files opened in Step #6.
+8.	For each row in the estimate and margins files, obtain survey data values from the columns between the Summary File Starting and Ending Positions (inclusive) obtained from Appendix A in Step #2.
+9.	Use the appropriate template file (e.g. Seq3.xls) from file 2015_5yr_Summary_FileTemplates.zip to get descriptive column names to associate with the survey data collected in Step #8.
+10.	Merge by Logical Record Number the tables created in Step #5 and Step #9, then form a final output table by retaining only the Geographic Identifier column, estimate columns, and margin-of-error columns.
+11.	Save the output table to a CSV file or database.
