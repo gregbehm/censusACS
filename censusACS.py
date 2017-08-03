@@ -114,6 +114,10 @@ def get_templates(templates_zip_archive):
     return templates
 
 
+def progress_report(fraction):
+    print(f'\rProgress: {100*fraction:.0f}% ', end='')
+
+
 def main(config=None):
     # Read config.json or default variables
     cfg = get_config(config)
@@ -219,7 +223,7 @@ def main(config=None):
 
                 built = 0
                 # Process all tables
-                for table in all_tables:
+                for n, table in enumerate(all_tables):
                     sequence_data = []
                     # For this table, get file sequence numbers, start/end record numbers
                     seqs, starts, ends = get_appendix_data(appx_A, table)
@@ -268,7 +272,9 @@ def main(config=None):
                         pathname = os.path.join(outdir, state + table + '.csv')
                         df.to_csv(pathname, index=False)
                         built += 1
-                        print('.', end='', flush=True)
+
+                    # Print progress percentage
+                    progress_report(n / len(all_tables))
 
                 empty = len(all_tables) - built
                 print(f'\nSaved {built} tables and dropped {empty} empty tables for {state}')
