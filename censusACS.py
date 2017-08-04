@@ -114,7 +114,20 @@ def get_templates(templates_zip_archive):
     return templates
 
 
+def get_logical_records(fp, names, summary_level):
+    """
+    Given a CSV geo file object fp, column-names list names,
+    and geo summary level value, return a DataFrame of GEO IDS
+    and Logical Record Numbers from the geo file, filtered by
+    the geographic summary level.
+    """
+    gdf = read_from_csv(fp, names=names)
+    summary_geo = get_by_summary_level(gdf, summary_level)
+    return summary_geo[['Geographic Identifier', 'Logical Record Number']]
+
+
 def progress_report(fraction):
+    # Print the current progress, given as a fraction, as a percentage.
     print(f'\rProgress: {100*fraction:.0f}% ', end='')
 
 
@@ -181,9 +194,9 @@ def main(config=None):
             appx_A['start'] = pd.to_numeric(appx_A['start'])
             appx_A['end'] = pd.to_numeric(appx_A['end'])
         except ValueError as e:
-            print(f'{e}.', file=sys.stderr)
-            print(f'File {pathname} is corrupt or has invalid format.', file=sys.stderr)
-            raise SystemExit(f'Exiting {__file__}.')
+            print(f'{e}', file=sys.stderr)
+            print(f'File {pathname} is corrupt or has invalid format', file=sys.stderr)
+            raise SystemExit(f'Exiting {__file__}')
 
     # Create Tables list
     tables = appx_A.drop(['restr', 'seq', 'start_end', 'start', 'end'], axis=1)
@@ -202,25 +215,28 @@ def main(config=None):
         print(f'Building tables for {state}')
         # Unzip and open the summary files
         pathname = os.path.join(sourcedir, state + summary_file_suffix)
-        with zipfile.ZipFile(pathname) as z:
-            # Get Estimate file names
-            e = [f for f in z.namelist() if f.startswith('e')]
-            # Pull sequence number from file name positions 8-11; use as dict key
-            efiles = {f[8:12]: f for f in e}
-            # Get Margin-of-Error file names
-            m = [f for f in z.namelist() if f.startswith('m')]
-            # Pull sequence number from file name positions 8-11; use as dict key
-            mfiles = {f[8:12]: f for f in m}
-            # Get Geography CSV file name
-            geofile = [f for f in z.namelist() if f.startswith('g') and f.endswith('csv')][0]
-            # Open and read the Geography file
-            with z.open(geofile) as g:
+        try:
+            with zipfile.ZipFile(pathname) as z:
+                # Get Geography CSV file name
+                geofile = [f for f in z.namelist() if f.startswith('g') and f.endswith('csv')][0]
+                try:
+                    # Open and read the Geography file
+                    with z.open(geofile) as g:
+                        # Get Geo IDs and Logical Record Numbers for this Summary Level
+                        logi_recs = get_logical_records(g, templates['geo'], summary_level)
+                except OSError as e:
+                    print(f'Geofile error for {state}')
+                    print(f'{e}')
+                    continue
 
-                # Get Geo IDs and Logical Record Numbers for this Summary Level
-                gdf = read_from_csv(g, names=templates['geo'])
-                summary_geo = get_by_summary_level(gdf, summary_level)
-                logical_recs = summary_geo[['Geographic Identifier', 'Logical Record Number']]
-
+                # Get Estimate file names
+                e = [f for f in z.namelist() if f.startswith('e')]
+                # Pull sequence number from file name positions 8-11; use as dict key
+                efiles = {f[8:12]: f for f in e}
+                # Get Margin-of-Error file names
+                m = [f for f in z.namelist() if f.startswith('m')]
+                # Pull sequence number from file name positions 8-11; use as dict key
+                mfiles = {f[8:12]: f for f in m}
                 built = 0
                 # Process all tables
                 for n, table in enumerate(all_tables):
@@ -237,8 +253,8 @@ def main(config=None):
                                 edf = read_summary_file(e, names=template)
                                 mdf = read_summary_file(m, names=template)
                                 # Merge the estimates and margins with the logical records
-                                edf = edf.merge(logical_recs).set_index('Geographic Identifier')
-                                mdf = mdf.merge(logical_recs).set_index('Geographic Identifier')
+                                edf = edf.merge(logi_recs).set_index('Geographic Identifier')
+                                mdf = mdf.merge(logi_recs).set_index('Geographic Identifier')
                                 # Keep only data columns
                                 use_col_nums = list(range(start - 1, end))
                                 edf = edf.iloc[:, use_col_nums]
@@ -246,7 +262,7 @@ def main(config=None):
                                 # Prepend E/M to column names for Estimates/Margins-of-Error
                                 edf.columns = ['E: ' + col for col in edf.columns]
                                 mdf.columns = ['M: ' + col for col in mdf.columns]
-                                # Join DataFrames 
+                                # Join DataFrames
                                 df = pd.concat([edf, mdf], axis=1)
                                 # Interleave Estimate and Margin-of-Error columns
                                 new_columns = [None] * (len(edf.columns) + len(mdf.columns))
@@ -277,7 +293,12 @@ def main(config=None):
                     progress_report(n / len(all_tables))
 
                 empty = len(all_tables) - built
-                print(f'\nSaved {built} tables and dropped {empty} empty tables for {state}')
+                print(f'\nSaved {built} tables, dropped {empty} empty tables for {state}')
+
+        except OSError as e:
+            print(f'Sumary file error for {pathname}')
+            print(f'{e}')
+            continue
 
 
 if __name__ == '__main__':
