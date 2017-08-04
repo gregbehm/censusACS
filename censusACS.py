@@ -287,27 +287,29 @@ def main(config=None):
                         # Save DataFrame to list
                         sequence_data.append(df)
 
-                    # Concatenate multiple data frames column-wise
-                    df = pd.concat(sequence_data, axis=1)
+                    # Guard rail against file errors above
+                    if sequence_data:
 
-                    # Reset 'Geographic Identifier' from index to column
-                    df.reset_index(inplace=True)
+                        # Concatenate multiple data frames column-wise
+                        df = pd.concat(sequence_data, axis=1)
 
-                    # Save non-empty table as CSV
-                    if not df.drop('Geographic Identifier', axis=1).dropna().empty:
-                        # Conform Geo ID w/ GEOID in Census Block Group shapefiles
-                        df = df.rename(columns={'Geographic Identifier': 'GEOID'})
-                        # Strip GEOID to last 12 characters
-                        df['GEOID'] = df['GEOID'].apply(lambda x: x[-12:])
-                        pathname = os.path.join(outdir, state + table + '.csv')
-                        df.to_csv(pathname, index=False)
-                        built += 1
+                        # Reset 'Geographic Identifier' from index to column
+                        df.reset_index(inplace=True)
+
+                        # Save non-empty table as CSV
+                        if not df.drop('Geographic Identifier', axis=1).dropna().empty:
+                            # Conform Geo ID w/ GEOID in Census Block Group shapefiles
+                            df = df.rename(columns={'Geographic Identifier': 'GEOID'})
+                            # Strip GEOID to last 12 characters
+                            df['GEOID'] = df['GEOID'].apply(lambda x: x[-12:])
+                            pathname = os.path.join(outdir, state + table + '.csv')
+                            df.to_csv(pathname, index=False)
+                            built += 1
 
                     # Print progress percentage
                     progress_report(n / len(all_tables))
 
-                empty = len(all_tables) - built
-                print(f'\nSaved {built} tables, dropped {empty} empty tables for {state}')
+                print(f'\n{state} tables: saved {built}, dropped {n - built} empty')
 
         except OSError as e:
             print(f'Sumary file error for {pathname}')
