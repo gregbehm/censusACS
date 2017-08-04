@@ -221,8 +221,8 @@ def main(config=None):
                 geofile = [f for f in z.namelist()
                            if f.startswith('g') and f.endswith('csv')
                            ][0]
+                # Open and read the Geography file
                 try:
-                    # Open and read the Geography file
                     with z.open(geofile) as g:
                         # Get Geo IDs and Logical Record Numbers for this Summary Level
                         logi_recs = get_logical_records(g, templates['geo'], summary_level)
@@ -247,44 +247,56 @@ def main(config=None):
                     seqs, starts, ends = get_appendix_data(appx_A, table)
                     for seq, start, end in zip(seqs, starts, ends):
                         # Get summary and margin file, based on sequence number
-                        efile = efiles[seq]
-                        mfile = mfiles[seq]
-                        with z.open(efile) as e:
-                            with z.open(mfile) as m:
-                                template = templates[seq]
+                        template = templates[seq]
+                        try:
+                            efile = efiles[seq]
+                            with z.open(efile) as e:
                                 edf = read_summary_file(e, names=template)
+                        except OSError as e:
+                            print(f'Estimates file {efile} error for {state}')
+                            print(f'{e}')
+                            break
+
+                        try:
+                            mfile = mfiles[seq]
+                            with z.open(mfile) as m:
                                 mdf = read_summary_file(m, names=template)
-                                # Merge the estimates and margins with the logical records
-                                edf = edf.merge(logi_recs).set_index('Geographic Identifier')
-                                mdf = mdf.merge(logi_recs).set_index('Geographic Identifier')
-                                # Keep only data columns
-                                use_col_nums = list(range(start - 1, end))
-                                edf = edf.iloc[:, use_col_nums]
-                                mdf = mdf.iloc[:, use_col_nums]
-                                # Prepend E/M to column names for Estimates/Margins-of-Error
-                                edf.columns = ['E: ' + col for col in edf.columns]
-                                mdf.columns = ['M: ' + col for col in mdf.columns]
-                                # Join DataFrames
-                                df = pd.concat([edf, mdf], axis=1)
-                                # Interleave Estimate and Margin-of-Error columns
-                                new_columns = [None] * (len(edf.columns) + len(mdf.columns))
-                                new_columns[::2] = edf.columns
-                                new_columns[1::2] = mdf.columns
-                                # Reorder columns using interleaved labels
-                                df = df[new_columns]
-                                # Save DataFrame to list
-                                sequence_data.append(df)
+                        except OSError as e:
+                            print(f'Margins file {mfile} error for {state}')
+                            print(f'{e}')
+                            break
+
+                        # Merge the estimates and margins with the logical records
+                        edf = edf.merge(logi_recs).set_index('Geographic Identifier')
+                        mdf = mdf.merge(logi_recs).set_index('Geographic Identifier')
+                        # Keep only data columns
+                        use_col_nums = list(range(start - 1, end))
+                        edf = edf.iloc[:, use_col_nums]
+                        mdf = mdf.iloc[:, use_col_nums]
+                        # Prepend E/M to column names for Estimates/Margins-of-Error
+                        edf.columns = ['E: ' + col for col in edf.columns]
+                        mdf.columns = ['M: ' + col for col in mdf.columns]
+                        # Join DataFrames
+                        df = pd.concat([edf, mdf], axis=1)
+                        # Interleave Estimate and Margin-of-Error columns
+                        new_columns = [None] * (len(edf.columns) + len(mdf.columns))
+                        new_columns[::2] = edf.columns
+                        new_columns[1::2] = mdf.columns
+                        # Reorder columns using interleaved labels
+                        df = df[new_columns]
+                        # Save DataFrame to list
+                        sequence_data.append(df)
 
                     # Concatenate multiple data frames column-wise
                     df = pd.concat(sequence_data, axis=1)
 
-                    # reset_index moves 'Geographic Identifier' from index to column
+                    # Reset 'Geographic Identifier' from index to column
                     df.reset_index(inplace=True)
 
                     # Save non-empty table as CSV
                     if not df.drop('Geographic Identifier', axis=1).dropna().empty:
-                        # Conform Geographic ID with GEOID in Census Block Group shapefiles
-                        df.rename(columns={'Geographic Identifier': 'GEOID'}, inplace=True)
+                        # Conform Geo ID w/ GEOID in Census Block Group shapefiles
+                        df = df.rename(columns={'Geographic Identifier': 'GEOID'})
                         # Strip GEOID to last 12 characters
                         df['GEOID'] = df['GEOID'].apply(lambda x: x[-12:])
                         pathname = os.path.join(outdir, state + table + '.csv')
