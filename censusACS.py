@@ -218,7 +218,9 @@ def main(config=None):
         try:
             with zipfile.ZipFile(pathname) as z:
                 # Get Geography CSV file name
-                geofile = [f for f in z.namelist() if f.startswith('g') and f.endswith('csv')][0]
+                geofile = [f for f in z.namelist()
+                           if f.startswith('g') and f.endswith('csv')
+                           ][0]
                 try:
                     # Open and read the Geography file
                     with z.open(geofile) as g:
