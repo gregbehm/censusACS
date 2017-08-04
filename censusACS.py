@@ -1,5 +1,8 @@
 """
 Generate Detailed Tables from the US Census ACS 5-Year Summary Files
+
+usage: censusACS.py [-h] [-c config_json_file]
+
 """
 
 import argparse
