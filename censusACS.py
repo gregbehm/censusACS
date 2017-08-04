@@ -13,6 +13,10 @@ import zipfile
 
 # Define helper functions
 
+def stderr_print(*args, **kwargs):
+    print(*args, **kwargs, file=sys.stderr, flush=True)
+
+
 def get_config(config=None):
     """
     Create and return configuration dictionary, either read
@@ -47,7 +51,7 @@ def request_file(url):
         response.raise_for_status()
         return response
     except requests.exceptions.RequestException as e:
-        print(f'Error: Download from {url} failed. Reason: {e}')
+        stderr_print(f'Error: Download from {url} failed. Reason: {e}')
         return None
 
 
@@ -182,7 +186,7 @@ def main(config=None):
                         w.write(response.content)
                         print(f'File {pathname} downloaded successfully')
                 except OSError as e:
-                    print(f'Error {e}: File write on {pathname} failed')
+                    stderr_print(f'Error {e}: File write on {pathname} failed')
 
     # Read ACS 5-year Appendix A for Table sequence numbers, start/end records
     pathname = os.path.join(sourcedir, appendix_file)
@@ -194,8 +198,9 @@ def main(config=None):
             appx_A['start'] = pd.to_numeric(appx_A['start'])
             appx_A['end'] = pd.to_numeric(appx_A['end'])
         except ValueError as e:
-            print(f'{e}', file=sys.stderr)
-            print(f'File {pathname} is corrupt or has invalid format', file=sys.stderr)
+            stderr_print(f'{e}')
+            stderr_print(f'{e}')
+            stderr_print(f'File {pathname} is corrupt or has invalid format')
             raise SystemExit(f'Exiting {__file__}')
 
     # Create Tables list
@@ -227,8 +232,8 @@ def main(config=None):
                         # Get Geo IDs and Logical Record Numbers for this Summary Level
                         logi_recs = get_logical_records(g, templates['geo'], summary_level)
                 except OSError as e:
-                    print(f'Geofile error for {state}')
-                    print(f'{e}')
+                    stderr_print(f'Geofile error for {state}')
+                    stderr_print(f'{e}')
                     continue
 
                 # Get Estimate file names
@@ -253,8 +258,8 @@ def main(config=None):
                             with z.open(efile) as e:
                                 edf = read_summary_file(e, names=template)
                         except OSError as e:
-                            print(f'Estimates file {efile} error for {state}')
-                            print(f'{e}')
+                            stderr_print(f'Estimates file {efile} error for {state}')
+                            stderr_print(f'{e}')
                             break
 
                         try:
@@ -262,8 +267,8 @@ def main(config=None):
                             with z.open(mfile) as m:
                                 mdf = read_summary_file(m, names=template)
                         except OSError as e:
-                            print(f'Margins file {mfile} error for {state}')
-                            print(f'{e}')
+                            stderr_print(f'Margins file {mfile} error for {state}')
+                            stderr_print(f'{e}')
                             break
 
                         # Merge the estimates and margins with the logical records
@@ -312,8 +317,8 @@ def main(config=None):
                 print(f'\n{state} tables: saved {built}, dropped {n - built} empty')
 
         except OSError as e:
-            print(f'Sumary file error for {pathname}')
-            print(f'{e}')
+            stderr_print(f'Sumary file error for {pathname}')
+            stderr_print(f'{e}')
             continue
 
 
