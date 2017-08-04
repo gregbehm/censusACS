@@ -313,7 +313,7 @@ def main(config=None):
                     # Print progress percentage
                     progress_report(n / len(all_tables))
 
-                print(f'\n{state} tables: saved {built}, dropped {n - built} empty')
+                print(f'\n{state} tables: saved {built}, dropped {n + 1 - built} empty')
 
         except OSError as e:
             stderr_print(f'Summary file error for {pathname}')
