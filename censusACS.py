@@ -199,7 +199,6 @@ def main(config=None):
             appx_A['end'] = pd.to_numeric(appx_A['end'])
         except ValueError as e:
             stderr_print(f'{e}')
-            stderr_print(f'{e}')
             stderr_print(f'File {pathname} is corrupt or has invalid format')
             raise SystemExit(f'Exiting {__file__}')
 
@@ -317,7 +316,7 @@ def main(config=None):
                 print(f'\n{state} tables: saved {built}, dropped {n - built} empty')
 
         except OSError as e:
-            stderr_print(f'Sumary file error for {pathname}')
+            stderr_print(f'Summary file error for {pathname}')
             stderr_print(f'{e}')
             continue
 
