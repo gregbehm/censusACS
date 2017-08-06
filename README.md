@@ -1,7 +1,7 @@
 # US Census American Community Survey data table builder
 
 *"The U.S. Census Bureau's American Community Survey (ACS) is an ongoing survey that provides vital information on a yearly basis about our nation and its people. Information from the survey generates data that help determine how more than $400 billion in federal and state funds are distributed each year."*  
--- [https://www.census.gov/programs-surveys/acs/about.html]
+[https://www.census.gov/programs-surveys/acs/about.html]
 
 Data from the ACS are published annually, aggregated as 1-year, 3-year, and 5-year estimates. Data from the survey are released at various geographical levels, the most detailed of which is the Census Block Group, a statistical division of the census tract, typically containing between 600 and 3,000 people.
 
