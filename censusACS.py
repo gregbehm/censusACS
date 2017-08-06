@@ -22,27 +22,22 @@ def stderr_print(*args, **kwargs):
 
 def get_config(config=None):
     """
-    Create and return configuration dictionary, either read
-    in from config.json, or default. 
+    Return configuration dictionary, read in
+    from config.json, or default.
     """
 
+    data = {}
     try:
         with open(config) as fp:
             data = json.load(fp)
-            cfg = {
-                'year': data.get('year', '2015'),
-                'states': data.get('states', ['Colorado']),
-                'tables': data.get('tables', [])
-            }
     except:
-        # Default config dictionary
-        cfg = {
-            'year': '2015',
-            'states': ['Colorado'],
-            'tables': []
-        }
+        pass
 
-    return cfg
+    return {
+        'year': data.get('year', '2015'),
+        'states': data.get('states', ['Colorado']),
+        'tables': data.get('tables', [])
+    }
 
 
 def request_file(url):
