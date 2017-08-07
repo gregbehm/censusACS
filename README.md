@@ -1,5 +1,10 @@
 # US Census American Community Survey data table builder
 
+"""
+Author: Greg Behm
+This project is licensed under the terms of the MIT license.
+"""
+
 *"The U.S. Census Bureau's American Community Survey (ACS) is an ongoing survey that provides vital information on a yearly basis about our nation and its people. Information from the survey generates data that help determine how more than $400 billion in federal and state funds are distributed each year."*  
 [https://www.census.gov/programs-surveys/acs/about.html]
 
