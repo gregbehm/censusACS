@@ -6,7 +6,7 @@ requests==2.18.4
 certifi==2017.7.27.1
 chardet==3.0.4
 idna==2.6
-numpy==1.13.1
+numpy==1.22.0
 python-dateutil==2.6.1
 pytz==2017.2
 six==1.10.0
